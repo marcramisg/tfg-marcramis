@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIVE</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 90px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            z-index: 99;
+        }
+
+        #sidebar li a:hover:not(.active) {
+          color: #060606;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                top: 11.5rem;
+                padding: 0;
+            }
+        }
+
+        #accuracy-chart {
+          width: 100%;
+          height: 75%; 
+        }
+            
+        .navbar {
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+        }
+
+        @media (min-width: 767.98px) {
+            .navbar {
+                top: 0;
+                position: sticky;
+                z-index: 999;
+            }
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+        }
+
+        .sidebar .nav-link.active {
+            color: #0d6efd;
+        }
+        
+        .project-info-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .info-value {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 9999;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-dialog {
+          margin: 5% auto;
+          background: white;
+          border-radius: 8px;
+          padding: 20px;
+          max-width: 800px;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .btn-close {
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light p-3">
+        <div class="d-flex col-12 col-md-3 col-lg-2 mb-2 mb-lg-0 flex-wrap flex-md-nowrap justify-content-between">
+            <a class="navbar-brand" href="#">
+              <img src="/static/royal_flush_logo.png" alt="Logo" height="40">
+                Manager interface
+            </a>
+            <button class="navbar-toggler d-md-none collapsed mb-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <div class="col-12 col-md-4 col-lg-2">
+            <input id="search-bar" class="form-control form-control-dark" type="text" placeholder="Search" aria-label="Search">
+        </div>
+
+        <div class="col-12 col-md-5 col-lg-8 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+            <div class="mr-3 mt-1">
+                <a class="github-button" href="https://github.com/FranEnguix/five" data-color-scheme="no-preference: dark; light: light; dark: light;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star /franenguix/five">Star</a>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">
+                    {{ agent.jid }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item" href="/spade/messages">{{ agent.traces.received().__len__() }} Messages</a></li>
+                  <li><a class="dropdown-item" href="/manager/stop_all_agents">Stop ALL agents</a></li>
+                  <li><a class="dropdown-item" href="/spade/stop">Stop manager</a></li>
+                </ul>
+              </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex active" aria-current="page" href="/manager/dashboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            <span class="ml-2">Dashboard</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" href="/manager/project">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                            <span class="ml-2">Project</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" href="/manager/agents">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span class="ml-2">Agents</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" href="/manager/plots">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            <span class="ml-2">Plots</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex disabled text-muted" href="/manager/plugins">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-layers"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                            <span class="ml-2">Plugins</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1 mr-2">
+                            <a class="btn btn-sm btn-secondary ml-3 mt-2 disabled" href="#">
+                                <svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-book" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M1 2.828v9.923c.918-.35 2.107-.692 3.287-.81 1.094-.111 2.278-.039 3.213.492V2.687c-.654-.689-1.782-.886-3.112-.752-1.234.124-2.503.523-3.388.893zm7.5-.141v9.746c.935-.53 2.12-.603 3.213-.493 1.18.12 2.37.461 3.287.811V2.828c-.885-.37-2.154-.769-3.388-.893-1.33-.134-2.458.063-3.112.752zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+                                </svg>
+                                <span class="ml-2">FIVE ReadTheDocs</span>
+                            </a>
+                        </li>
+                      </ul>
+                </div>
+            </nav>
+            <main id="filter-target" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 py-4">
+                <h1 class="h2">Dashboard</h1>
+                
+                <!-- Project Configuration Section -->
+                <div class="row my-4">
+                    <div class="col-12">
+                        <div class="card project-info-card">
+                            <h5 class="card-header">Project Configuration</h5>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><span class="info-label">XMPP Domain:</span> <span class="info-value">{{ data[0].server }}</span></p>
+                                        <p><span class="info-label">Algorithm:</span> <span class="info-value">{{ data[0].algorithm }}</span></p>
+                                        <p><span class="info-label">Algorithm Rounds:</span> <span class="info-value">{{ data[0].algorithm_rounds }}</span></p>
+                                        <p><span class="info-label">Consensus Iterations:</span> <span class="info-value">{{ data[0].consensus_iterations }}</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><span class="info-label">Training Epochs:</span> <span class="info-value">{{ data[0].training_epochs }}</span></p>
+                                        <p><span class="info-label">Dataset:</span> <span class="info-value">{{ data[0].dataset }}</span></p>
+                                        <p><span class="info-label">Distribution:</span> <span class="info-value">{{ data[0].distribution }}</span></p>
+                                        <p><span class="info-label">ANN:</span> <span class="info-value">{{ data[0].ann }}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row my-4">
+                    <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0">
+                        <div class="card">
+                            <h5 class="card-header">Agents</h5>
+                            <div class="card-body">
+                              <h5 class="card-title" id="nAgents">{{ data[1].nAgents }}</h5>
+                              <p class="card-text">Total agents in the network</p>
+                              <p class="card-text text-success" id="nActive-agents">{{ data[1].nActiveAgents }} agents active</p>
+                            </div>
+                          </div>
+                    </div>
+                    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
+                        <div class="card">
+                            <h5 class="card-header">Progress</h5>
+                            <div class="card-body">
+                              <h5 class="card-title" id="progress"> 0.0%</h5>
+                              <p class="card-text">Overall training progress</p>
+                              <p class="card-text text-success" id="progress_status">On schedule</p>
+                            </div>
+                          </div>
+                    </div>
+                    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
+                        <div class="card">
+                            <h5 class="card-header">Accuracy</h5>
+                            <div class="card-body">
+                              <h5 class="card-title" id="accuracy"> 0.0%</h5>
+                              <p class="card-text">Current model accuracy</p>
+                              <p class="card-text text-success" id="accuracy_increase">0.0% increase since last round</p>
+                            </div>
+                          </div>
+                    </div>
+                    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
+                        <div class="card">
+                            <h5 class="card-header">Messages</h5>
+                            <div class="card-body">
+                              <h5 class="card-title" id="nMessages">0</h5>
+                              <p class="card-text">Total messages exchanged</p>
+                              <p class="card-text text-success" id="messages_status">Network healthy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+          
+                <div class="row" style="display: flex; flex-wrap: nowrap; height: 100vh;">
+                  <!-- Columna izquierda -->
+                  <div id="left-pane" style="width: 70%; min-width: 200px;">
+                    <div class="card h-100">
+                      <h5 class="card-header">Training Progress</h5>
+                      <div class="card-body">
+                        <div class="table-responsive">
+                          <table class="table">
+                            <thead>
+                              <tr>
+                                <th scope="col">Round</th>
+                                <th scope="col">Accuracy</th>
+                                <th scope="col">Loss</th>
+                                <th scope="col">Time</th>
+                                <th scope="col"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <!-- tabla -->
+                            </tbody>
+                          </table>
+                        </div>
+                        <a href="#" id="view-all-btn" class="btn btn-block btn-light">View all rounds</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Resizer -->
+                  <div id="resizer" style="flex-basis: 2px; flex-shrink: 0; background: #aaa; cursor: col-resize;"></div>
+
+                  <!-- Columna derecha -->
+                  <div id="right-pane" style="width: 30%; min-width: 200px;">
+                    <div class="card h-100">
+                      <h5 class="card-header">Accuracy Progress</h5>
+                      <div class="card-body">
+                        <div id="accuracy-chart"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <footer class="pt-5 d-flex justify-content-between">
+                    <span class="d-flex justify-content-center align-items-center">Copyright © 2021-2024 <a class="ml-1" href="https://github.com/FranEnguix/five">FIVE</a></span>
+                    <ul class="nav m-0">
+                        <li class="nav-item">
+                          <a class="nav-link text-secondary" href="https://github.com/FranEnguix/five/blob/main/LICENSE">License</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link text-secondary" href="mailto:enguix.fco@gmail.com">Contact</a>
+                        </li>
+                      </ul>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal" id="roundDetailsModal" tabindex="-1" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-lg" style="margin: 100px auto; background: white; padding: 1rem;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Round Details</h5>
+            <button type="button" class="btn-close" onclick="hideModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Accuracy</th>
+                  <th>Loss</th>
+                </tr>
+              </thead>
+              <tbody id="modal-agent-details"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Filter with search-bar
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('search-bar').addEventListener('keyup', function() {
+          var value = this.value.toLowerCase();
+          var filterTarget = document.getElementById('filter-target');
+          var divs = filterTarget.getElementsByTagName('div');
+          
+          for (var i = 0; i < divs.length; i++) {
+            var textContent = divs[i].textContent || divs[i].innerText;
+            divs[i].style.display = textContent.toLowerCase().indexOf(value) > -1 ? '' : 'none';
+          }
+        });
+      });
+      
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <!-- Github buttons -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <!-- <script>
+        // Accuracy chart
+        new Chartist.Line('#accuracy-chart', {
+            labels: ['1', '2', '3', '4', '5', '6'],
+            series: [
+                [42.5, 54.3, 65.8, 72.1, 75.7, 78.3]
+            ]
+            }, {
+            low: 0,
+            high: 100,
+            showArea: true
+        });
+    </script> -->
+    <script>
+      function getAgentsDataForRound(agentsTrainingHistory, round) {
+        const agentsData = [];
+        for (const agentName in agentsTrainingHistory) {
+          const roundsData = agentsTrainingHistory[agentName];
+          const roundData = roundsData.find(r => r.round === round);
+          if (roundData) {
+            agentsData.push({
+              agent: agentName,
+              test_accuracy: roundData.accuracy,
+              test_loss: roundData.loss
+            });
+          }
+        }
+        return agentsData;
+      }
+
+      function showRoundDetails(agents, round) {
+        const tbody2 = document.getElementById("modal-agent-details");
+        tbody2.innerHTML = "";
+        agents.forEach(agent => {
+          const row2 = document.createElement("tr");
+          row2.innerHTML = `
+            <td>${agent.agent.split('__')[0]}</td>
+            <td>${agent.test_accuracy}%</td>
+            <td>${agent.test_loss}</td>
+          `;
+          tbody2.appendChild(row2);
+        });
+
+        document.querySelector("#roundDetailsModal").style.display = "block";
+      }
+      function hideModal() {
+        document.querySelector("#roundDetailsModal").style.display = "none";
+      }
+    </script>
+
+    <script>
+        
+        // WebSocket global
+        if (!(window.globalSocket && (window.globalSocket.readyState === WebSocket.OPEN || window.globalSocket.readyState === WebSocket.CONNECTING))) {
+            console.log('Inicializando WebSocket global...');
+            
+            window.globalSocket = new WebSocket("ws://" + location.host + "/ws");
+            window.globalSocket.isConnected = false;
+            window.globalSocket.manualClose = false;
+            
+            window.globalSocket.onopen = function() {
+                console.log('WebSocket global conectado');
+                window.globalSocket.isConnected = true;
+            };
+
+            window.globalSocket.onclose = function(event) {
+                console.log('WebSocket global cerrado:', event.code, event.reason);
+                window.globalSocket.isConnected = false;
+                
+                // Reconectar automáticamente
+                if (!window.globalSocket.manualClose && event.code !== 1000 && event.code !== 1001) {
+                    setTimeout(() => {
+                        console.log('Intentando reconectar...');
+                        window.globalSocket = new WebSocket("ws://" + location.host + "/ws");
+                    }, 3000);
+                }
+            };
+
+            window.globalSocket.onerror = function(error) {
+                console.log('Error en WebSocket global:', error);
+            };
+        }
+
+        // Actualizar el dashboard con los datos recibidos
+        function updateDashboard(data) {
+            // Actualizar si estamos en el dashboard
+            if (!window.location.pathname.includes('dashboard') && window.location.pathname !== '/') {
+                return;
+            }
+
+            const tbody = document.querySelector(".table tbody");
+            if (!tbody) return;
+
+            try {
+                tbody.innerHTML = '';
+                
+                // Actualizar
+                const updateElement = (id, value) => {
+                    const element = document.getElementById(id);
+                    if (element) element.innerText = value;
+                };
+
+                updateElement("nAgents", data.nAgents);
+                updateElement("nActive-agents", data.nActiveAgents + " active agents");
+                updateElement("progress", data.progress.progress + "%");
+                updateElement("progress_status", data.progress.status);
+                updateElement("accuracy", data.accuracy.accuracy + "%");
+                updateElement("nMessages", data.messages.total);
+                updateElement("messages_status", data.messages.status);
+                
+                const accuracyIncrease = document.getElementById("accuracy_increase");
+                if (accuracyIncrease) {
+                    if (parseFloat(data.accuracy.change) < 0.0) {
+                        accuracyIncrease.classList.remove("text-success");
+                        accuracyIncrease.classList.add("text-danger");
+                        accuracyIncrease.innerText = data.accuracy.change + "% decrease since last round";
+                    } else {
+                        accuracyIncrease.classList.remove("text-danger");
+                        accuracyIncrease.classList.add("text-success");
+                        accuracyIncrease.innerText = data.accuracy.change + "% increase since last round";
+                    }
+                }
+
+                const allRows = [];
+                data.training_history.forEach(roundData => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <th scope="row">${roundData.round}</th>
+                        <td>${roundData.accuracy}%</td>
+                        <td>${roundData.loss}</td>
+                        <td>${roundData.time}</td>
+                        <td><a href="#" class="btn btn-sm btn-primary">Details</a></td>
+                    `;
+                    row.querySelector("a").addEventListener("click", e => {
+                        e.preventDefault();
+                        const roundNumber = roundData.round;
+                        const roundAgentsData = getAgentsDataForRound(data.agents_training_history, roundNumber);
+                        if (roundAgentsData.length) {
+                            showRoundDetails(roundAgentsData, roundNumber);
+                        } else {
+                            alert("No hay datos de agentes para esta ronda");
+                        }
+                    });
+                    allRows.push(row);
+                });
+                
+                tbody.innerHTML = "";
+                const rowsToShow = window.showingAllRows ? allRows : allRows.slice(0, 10);
+                rowsToShow.forEach(row => tbody.appendChild(row));
+                
+                const viewAllBtn = document.getElementById("view-all-btn");
+                if (viewAllBtn) {
+                    viewAllBtn.innerText = window.showingAllRows ? "Show less" : "View all rounds";
+                }
+
+                // Actualizar gráfico
+                if (typeof Plotly !== 'undefined' && document.getElementById('accuracy-chart')) {
+                    const rounds = data.training_history.map(d => d.round).reverse();
+                    const accuracy = data.training_history.map(d => d.accuracy).reverse();
+
+                    const traces = [{
+                        x: rounds,
+                        y: accuracy,
+                        type: 'scatter',
+                        mode: 'lines',
+                        fill: 'none',
+                        name: 'Global Accuracy',
+                        line: { color: '#1f77b4', width: 3 },
+                        marker: { color: '#ff7f0e', size: 6 }
+                    }];
+
+                    Object.entries(data.agents_training_history).forEach(([agentName, history]) => {
+                        traces.push({
+                            x: history.map(d => d.round).reverse(),
+                            y: history.map(d => d.accuracy).reverse(),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: agentName.split('__')[0],
+                            line: { width: 1.5 },
+                        });
+                    });
+
+                    Plotly.react('accuracy-chart', traces, {
+                        title: 'Accuracy Progress',
+                        margin: { t: 30, b: 40, l: 40, r: 20 },
+                        yaxis: {
+                            range: [0, 100],
+                            title: 'Accuracy (%)',
+                            tickformat: '.0f'
+                        },
+                        xaxis: {
+                            title: 'Round',
+                            tickmode: 'linear',
+                            dtick: 1,
+                            tickformat: 'd',
+                            range: [Math.max(0, Math.min(...rounds) - 1), Math.max(...rounds) + 1]
+                        },
+                        displayModeBar: false,
+                        responsive: true
+                    }, { responsive: true });
+                }
+                
+            } catch (error) {
+                console.error('Error actualizando dashboard:', error);
+            }
+        }
+
+        // Listener de mensajes
+        if (window.globalSocket && !window.globalSocket.hasListener) {
+            window.globalSocket.onmessage = function(event) {
+                console.log('Mensaje recibido en WebSocket global');
+
+                try {
+                    const data = JSON.parse(event.data);
+                    updateDashboard(data);
+                } catch (error) {
+                    console.error('Error procesando mensaje WebSocket:', error);
+                }
+            };
+            window.globalSocket.hasListener = true;
+        }
+
+        window.addEventListener("beforeunload", function() {
+            if (window.globalSocket) {
+                console.log('Cerrando WebSocket global al salir...');
+                window.globalSocket.manualClose = true;
+                window.globalSocket.close();
+            }
+        });
+
+        window.closeGlobalSocket = function() {
+            if (window.globalSocket) {
+                console.log('Cerrando WebSocket global manualmente...');
+                window.globalSocket.close();
+                window.globalSocket = null;
+            }
+        };
+
+        console.log('WebSocket global configurado');
+    </script>
+
+    <script>
+      const resizer = document.getElementById('resizer');
+      const left = document.getElementById('left-pane');
+      const right = document.getElementById('right-pane');
+
+      let isResizing = false;
+
+      resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const container = resizer.parentNode;
+        const totalWidth = container.clientWidth;
+        const newLeftWidth = e.clientX - container.offsetLeft;
+        const newRightWidth = totalWidth - newLeftWidth - resizer.offsetWidth;
+
+        if (newLeftWidth > 200 && newRightWidth > 200) {
+          left.style.width = newLeftWidth + 'px';
+          right.style.width = newRightWidth + 'px';
+        }
+        Plotly.Plots.resize(document.getElementById('accuracy-chart'));
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (isResizing) {
+          isResizing = false;
+          document.body.style.cursor = 'default';
+        }
+      });
+    </script>
+</body>
+</html>

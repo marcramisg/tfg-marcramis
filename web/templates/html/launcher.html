@@ -1,0 +1,260 @@
+{% extends "internal_tpl_base.html" %}
+
+{% block content_title %}Launcher{% endblock %}
+{% block content %}
+
+<!-- Main content -->
+<section class="content">
+    <!-- Info boxes -->
+    <!-- Main row -->
+    <div class="row">
+
+        <div class="col-md-6">
+
+            <form id="graphForm" role="form" method="post" action="/submit" enctype="multipart/form-data">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Select graph input file: </h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <!-- form start -->
+                    <div class="box-body">
+                        <div class="form-group">
+                            <!-- <label>Select Graph Format File:</label>
+                            <div class="form-group">
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="graphFileType" id="graphFileType" value="graphml" checked>
+                                  GraphML
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="graphFileType" id="graphFileType" value="pajek">
+                                  Pajek
+                                </label>
+                              </div>
+                            </div> -->
+                            <div class="form-group">
+                                <label for="graphInputFile">File input</label>
+                                <input type="file" name="graphInputFile" id="graphInputFile">
+                            </div>
+                            <div class="form-group">
+                                <label for="graph_path">Or specify existing graph path:</label>
+                                <input type="text" class="form-control" name="graph_path" id="graph_path" placeholder="e.g. royalflush_graphs/010_agents_complete.gml">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Configuration Parameters: </h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dataset">Select an algorithm:</label>
+                                        <select class="form-control" id="algorithm-select" name="algorithm">
+                                            <option selected>Select an algorithm</option>
+                                            <optgroup label="Federated Learning">
+                                                <option value="MACoFL">MACoFL</option>
+                                                <option value="ACoL">ACoL</option>
+                                                <option value="PMACoFL_min">PMACoFL_min</option>
+                                                <option value="PMACoFL_max">PMACoFL_max</option>
+                                            </optgroup>
+                                            <optgroup label="Consensus">
+                                                <option disabled>Olfati-Saber</option>
+                                            </optgroup>
+                                        </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="algorithm_rounds">Algorithm Rounds:</label>
+                                    <input type="number" class="form-control" name="algorithm_rounds" id="algorithm_rounds" value="10">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="consensus_iterations">Consensus Iterations:</label>
+                                    <input type="number" class="form-control" name="consensus_iterations" id="consensus_iterations" value="100">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="training_epochs">Training Epochs:</label>
+                                    <input type="number" class="form-control" name="training_epochs" id="training_epochs" value="1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="distribution">Dataset:</label>
+                                    <input type="text" class="form-control" name="dataset" id="dataset" value="cifar10">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="distribution">Data Distribution:</label>
+                                    <input type="text" class="form-control" name="distribution" id="distribution" value="non_iid diritchlet 0.1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="distribution">Neural Network Architecture:</label>
+                                    <input type="text" class="form-control" name="ann" id="ann" value="cnn5">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="generate_new_uuid4" id="generate_new_uuid4" checked>
+                                            Generate new UUID4
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Submit</button>
+                    <button type="submit" class="btn btn-danger" id="stopMAS" value="True"><span class="glyphicon glyphicon-stop"></span> Stop MAS Execution</button>
+                </div>
+            </form>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <form id="graphForm" role="form" method="post" action="/submit_graph" enctype="multipart/form-data">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Generating GraphML file: </h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <!-- form start -->
+                    <div class="box-body">
+                        <h4>GraphML file name to save the new graph into:</h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="graphOutputFile" id="graphOutputFile" placeholder="optional">
+                            <span class="input-group-addon">.gml</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Select Graph Features: </h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <!-- form start -->
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Available Graph Generators:</label>
+                            <select class="form-control" name="graphGenerator" id="graphGenerator" onchange="myHide(this)">
+                                <option value="complete" selected="selected">Complete</option>
+                                <!-- <option value="path">Path</option> -->
+                                <option value="ring">Ring</option>
+                                <option value="small-world">Small World</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-danger">Nodes number</button>
+                                </div>
+                                <input type="text" class="form-control" name="nodesNumber" id="nodesNumber" value="10">
+                            </div>
+                        </div>
+                        
+                    <!-- /.box-body -->
+
+                </div>
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary">Generate File</button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+
+    <script>
+
+
+function myShowIter(selectObject){
+    var generator = selectObject.value;
+    var i;
+
+    //console.log(generator);
+
+    if (generator == "ICORa")
+            document.getElementById('ICORa_delta_iter').style.display = "block";
+        else document.getElementById('ICORa_delta_iter').style.display = "none";
+
+}
+
+async function submitGraphForm(event) {
+    event.preventDefault();  // Evita el envío del formulario tradicional
+
+    const formData = new FormData(document.getElementById('graphForm'));
+
+    try {
+        // Enviar la solicitud AJAX con fetch
+        const response = await fetch('/submit_graph', {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Verificar si la respuesta fue exitosa
+        if (response.ok) {
+            const data = await response.json();
+            // Mostrar el mensaje de éxito
+            document.getElementById('message').innerHTML = `¡Grafo generado exitosamente! El archivo se guardó en: ${data.file_path}`;
+        } else {
+            const data = await response.json();
+            document.getElementById('message').innerHTML = `Error: ${data.message}`;
+        }
+    } catch (error) {
+        // Manejo de errores
+        document.getElementById('message').innerHTML = `Error al generar el grafo: ${error.message}`;
+    }
+}
+
+function myHide(selectObject){
+    var generator = selectObject.value;
+    var i;
+
+    //console.log(generator);
+
+    if (generator == "random" || generator == "watts") {
+        if (generator == "watts")
+            document.getElementById('neigh-group').style.display = "block";
+        else document.getElementById('neigh-group').style.display = "none";
+
+        document.getElementById('prob-group').style.display = "block";
+        i = document.getElementById('nodesNumber').value ;
+        document.getElementById('probability').value = Math.log(i) / i;
+    }
+    else {
+        document.getElementById('neigh-group').style.display = "none";
+        document.getElementById('prob-group').style.display = "none";
+    }
+
+    if (generator == "barabasi")
+        document.getElementById('edgesNew-group').style.display = "block";
+    else document.getElementById('edgesNew-group').style.display = "none";
+
+    if (generator == "geometric")
+        document.getElementById('radius-group').style.display = "block";
+    else document.getElementById('radius-group').style.display = "none";
+}
+
+function myFunction() {
+    var i;
+    i = document.getElementById('nodesNumber').value ;
+
+    document.getElementById('probability').value = Math.log(i) / i;
+}
+    </script>
+
+</section>
+{% endblock content %}

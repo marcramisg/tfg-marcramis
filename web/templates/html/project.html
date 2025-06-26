@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIVE</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script> -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 90px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            z-index: 99;
+        }
+
+        #sidebar li a:hover:not(.active) {
+          color: #060606;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                top: 11.5rem;
+                padding: 0;
+            }
+        }
+            
+        .navbar {
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+        }
+
+        @media (min-width: 767.98px) {
+            .navbar {
+                top: 0;
+                position: sticky;
+                z-index: 999;
+            }
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+        }
+
+        .sidebar .nav-link.active {
+            color: #0d6efd;
+        }
+
+        .gradient-button {
+          background: linear-gradient(to right, #6a11cb, #2575fc); /* Gradient color */
+          color: whitesmoke; /* Text color */
+          width: 200px; /* Square dimensions */
+          height: 200px; /* Square dimensions */
+          border: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 24px; /* Larger icon and text size */
+        }
+
+        .gradient-button i {
+            width: 50%;     /* 50% of the parent button's width */
+            height: 50%;    /* 50% of the parent button's height */
+            font-size: calc(0.5 * 200px); /* Dynamic calculation for icon size */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-five-outline-dark {
+          /* background-color: #cfe2ff !important; */
+          --bs-btn-color: #052c65 !important;
+          --bs-btn-border-color: #052c65;
+          --bs-btn-hover-color: #f1f6fd !important;
+          --bs-btn-hover-bg: #052c65;
+          --bs-btn-hover-border-color: #052c65;
+          --bs-btn-focus-shadow-rgb: 33,37,41;
+          --bs-btn-active-color: #f1f6fd !important;
+          --bs-btn-active-bg: #052c65;
+          --bs-btn-active-border-color: #052c65;
+          --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+          --bs-btn-disabled-color: #052c65;
+          --bs-btn-disabled-bg: transparent;
+          --bs-btn-disabled-border-color: #052c65;
+          --bs-gradient: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light p-3">
+        <div class="d-flex col-12 col-md-3 col-lg-2 mb-2 mb-lg-0 flex-wrap flex-md-nowrap justify-content-between">
+            <a class="navbar-brand" href="#">
+              <img src="../../rfLogo/royal_flush_logo.png" alt="Logo" height="40">
+                Manager interface
+            </a>
+            <button class="navbar-toggler d-md-none collapsed mb-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <div class="col-12 col-md-4 col-lg-2">
+            <input id="search-bar" class="form-control form-control-dark" type="text" placeholder="Search" aria-label="Search">
+        </div>
+
+        <div class="col-12 col-md-5 col-lg-8 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+            <div class="mr-3 mt-1">
+                <a class="github-button" href="https://github.com/FranEnguix/five" data-color-scheme="no-preference: dark; light: light; dark: light;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star /franenguix/five">Star</a>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">
+                    {{ agent.jid }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item" href="/spade/messages">{{ agent.traces.received().__len__() }} Messages</a></li>
+                  <li><a class="dropdown-item" href="/manager/stop_all_agents">Stop ALL agents</a></li>
+                  <li><a class="dropdown-item" href="/spade/stop">Stop manager</a></li>
+                </ul>
+              </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" aria-current="page" href="/manager/dashboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            <span class="ml-2">Dashboard</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex active" href="/manager/project">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                            <span class="ml-2">Project</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" href="/manager/agents">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span class="ml-2">Agents</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex" href="/manager/plots">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            <span class="ml-2">Plots</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1">
+                          <a class="nav-link d-flex disabled text-muted" href="/manager/plugins">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-layers"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                            <span class="ml-2">Plugins</span>
+                          </a>
+                        </li>
+                        <li class="nav-item pb-1 pt-1 mr-2">
+                            <a class="btn btn-sm btn-secondary ml-3 mt-2 disabled" href="#">
+                                <svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-book" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M1 2.828v9.923c.918-.35 2.107-.692 3.287-.81 1.094-.111 2.278-.039 3.213.492V2.687c-.654-.689-1.782-.886-3.112-.752-1.234.124-2.503.523-3.388.893zm7.5-.141v9.746c.935-.53 2.12-.603 3.213-.493 1.18.12 2.37.461 3.287.811V2.828c-.885-.37-2.154-.769-3.388-.893-1.33-.134-2.458.063-3.112.752zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+                                </svg>
+                                <span class="ml-2">FIVE ReadTheDocs</span>
+                            </a>
+                        </li>
+                      </ul>
+                </div>
+            </nav>
+            <main id="filter-target" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Overview</li>
+                    </ol>
+                </nav> -->
+                <h1 class="h2">Project</h1>
+
+
+                <!-- OLD UGLY BUTTONS
+                <div class="container d-flex justify-center" style="display: none;">
+                  <div class="container m-3">
+                      <input type="file" id="fileInput" class="file-input" accept=".five" onchange="loadProject(event)" style="display: none;">
+                      <button class="btn gradient-button d-flex flex-column" onclick="document.getElementById('fileInput').click();">
+                          <i class="fas fa-file-import mb-3"></i>
+                          <span>Load Project</span>
+                      </button>
+                  </div>
+                  <div class="container m-3">
+                    <button class="btn gradient-button d-flex flex-column">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                      </svg>
+                      <span class="button-text">Save Project</span>
+                    </button>
+                  </div>
+                  <div class="container m-3">
+                      <button class="btn gradient-button d-flex flex-column">
+                          <i class="fas fa-file-medical mb-3"></i>
+                          <span class="button-text">New Project</span>
+                      </button>
+                  </div>
+                  
+                </div> -->
+
+                <div class="row my-4">
+                  <div class="d-flex flex-row p-2">
+                    <div class="m-2 me-auto">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-lg btn-outline-success" onclick="document.getElementById('load-project').click();">
+                          <i class="fa-solid fa-play"></i>
+                          <span class="ml-1">Run Project</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="m-2 me-auto">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-lg btn-outline-danger" onclick="document.getElementById('load-project').click();">
+                          <i class="fa-solid fa-stop"></i>
+                          <span class="ml-1">Stop Project</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="m-2">
+                      <input type="file" id="load-project" class="file-input" accept=".fivep" onchange="loadProject(event)" style="display: none;">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-lg btn-five-outline-dark" onclick="document.getElementById('load-project').click();">
+                          <i class="fa fa-file-import"></i>
+                          <span class="ml-1">Load Project</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="m-2">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-lg btn-five-outline-dark">
+                          <i class="fa fa-file-arrow-down"></i>
+                          <span class="ml-1">Save Project</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="m-2">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-lg btn-five-outline-dark">
+                          <i class="fa fa-file"></i>
+                          <span class="ml-1">New Project</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- <hr class="border-primary border-2"> -->
+                
+
+               
+
+
+
+
+
+
+                <hr>
+                <div class="five-package row">
+                  <div class="accordion">
+
+                    <!-- Package -->
+                    <div class="collapser-scope accordion-item overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="collapser accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true">
+                          <i class="fas fa-gift mr-2"></i> 
+                          <span>Package</span>
+                        </button>
+                      </h2>
+                      <div class="collapsible accordion-collapse collapse show">
+                        <div class="accordion-body">
+                          <div class="row">
+                            <div class="col-md-4 mb-3">
+                              <label>Name</label>
+                              <input type="text" class="form-control" placeholder="Package unique name." value="" required>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="mb-3">
+                              <label class="form-label">Description</label>
+                              <textarea class="form-control" rows="3" placeholder="A description of the use of the package or notes about it."></textarea>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="d-flex mb-3">
+                              <button type="button" class="btn-toggle-success btn btn-success active me-auto" data-bs-toggle="button" aria-pressed="true">Enabled</button>
+                              <!-- <button type="button" class="btn btn-success me-auto">Enabled</button> -->
+                              <button type="button" class="btn btn-outline-danger">Delete package</button>
+
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                    <!-- Algorithm -->
+                    <div class="collapser-scope accordion-item overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="collapser collapsed accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true">
+                          Algorithm
+                        </button>
+                      </h2>
+                      <div class="collapsible accordion-collapse collapse">
+                        <div class="accordion-body">
+                          <div class="row">
+                            <div class="mb-3">
+                              <label class="form-label">Name</label>
+                              <select class="form-select" aria-label="Default select">
+                                <option selected>Select an algorithm</option>
+                                <optgroup label="Federated Learning">
+                                  <option value="FLaMAS">FLaMAS</option>
+                                  <option value="CoL">CoL</option>
+                                  <option value="ACoL">ACoL</option>
+                                  <option value="GTG-CoL">GTG-CoL</option>
+                                  <option value="ACoaL">ACoaL</option>
+                                </optgroup>
+                                <optgroup label="Consensus">
+                                  <option value="Olfati-Saber">Olfati-Saber</option>
+                                </optgroup>
+                              </select>
+                            </div>
+                            <div class="five-parameters mb-3" style="display: none;">
+                              <label class="form-label">Parameters</label>
+                              
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Agents -->
+                    <div class="collapser-scope accordion-item overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="collapser collapsed accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true">
+                          Agents
+                        </button>
+                      </h2>
+                      <div class="collapsible accordion-collapse collapse">
+                        <div class="accordion-body">
+                          <div class="row my-3">
+                            <div class="d-flex justify-content-evenly mb-3">
+                              <input type="file" class="file-input" accept=".gml" onchange="loadProject(event)" style="display: none;">
+                              <button class="btn btn-five-outline-dark p-2" onclick="document.getElementById('fileInput').click();">
+                                <i class="fas fa-upload"></i>
+                                <span>Import from graph</span>
+                              </button>
+
+                              <!-- Button trigger modal -->
+                              <button type="button" class="btn-generate-agents btn btn-five-outline-dark p-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                <i class="fas fa-gear"></i>
+                                <span>Generate agents</span>
+                              </button>
+
+                              <!-- Modal -->
+                              <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Agent generator tool</h1>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <form class="row g-3">
+                                        <div class="col-12">
+                                          <input type="text" class="form-control" placeholder="Name" data-toggle="tooltip" data-placement="top" title="Hint! Write 'agent[1-3]' in the name to generate: agent1, agent2 and agent3.">
+                                        </div>
+                                        <div class="col-12">
+                                          <div class="input-group">
+                                            <div class="input-group-text">@</div>
+                                            <input type="text" class="form-control" placeholder="Domain">
+                                          </div>
+                                        </div>
+                                        <div class="col-12">
+                                          <div class="input-group">
+                                            <div class="input-group-text px-3">/</div>
+                                            <input type="text" class="form-control" placeholder="Resource">
+                                          </div>
+                                        </div>
+                                        <div class="col-12">
+                                          <div class="input-group">
+                                            <div class="input-group-text">
+                                              <i class="fa-solid fa-child"></i>
+                                            </div>
+                                            <input type="file" class="form-control" accept=".py" data-toggle="tooltip" data-placement="top" title="Agent behaviour file.">
+                                          </div>
+                                        </div>
+                                      </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                      <button type="button" class="btn btn-primary">Add agents</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- OLD button
+                              <button class="btn-generate-agents btn btn-outline-dark p-2">
+                                <i class="fas fa-gear"></i>
+                                <span>Generate agents</span>
+                              </button> -->
+
+                              <!-- Delete agent
+                              <i class="fas fa-person-swimming"></i> -->
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12 col-sm-12 col-md-8 col-lg-6 col-xl-4 mb-3">
+                              <div class="card">
+                                <div class="card-header"><input type="text" class="form-control" placeholder="Agent Jabber ID"></div>
+                                <div class="card-body">
+                                  <div class="row">
+                                    <label class="form-label">Behaviour file</label>
+                                    <div class="input-group">
+                                      <div class="input-group-text">
+                                        <i class="fa-solid fa-child"></i>
+                                      </div>
+                                      <input type="file" class="form-control" accept=".py">
+                                    </div>
+                                  </div>
+                                  <hr>
+                                  <div class="row">
+                                    <label class="form-label">Algorithm parameters</label>
+                                  </div>
+                                  <hr>
+                                  <div class="row">
+                                    <label class="form-label">Neighbours</label>
+                                    <div class="row mx-0 px-0">
+                                      <div class="col-12 input-group mb-1">
+                                        <input type="text" class="form-control" placeholder="Neighbour Jabber ID">
+                                        <button class="btn btn-outline-danger p-2">
+                                          <i class="fas fa-user-minus"></i>
+                                        </button>
+                                      </div> 
+                                    </div>
+                                    <div class="col-12 input-group mt-2">
+                                      <input type="text" class="form-control" placeholder="Neighbour Jabber ID">
+                                      <button class="btn btn-outline-success p-2">
+                                        <i class="fas fa-user-plus"></i>
+                                      </button>
+                                    </div> 
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+
+                    <!-- Execution -->
+                    <div class="collapser-scope accordion-item overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="collapser collapsed accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true">
+                          Execution
+                        </button>
+                      </h2>
+                      <div class="collapsible accordion-collapse collapse">
+                        <div class="accordion-body">
+                          <div class="row my-3">
+                            <div class="mb-3 col-12 col-sm-4">
+                              <label class="form-label">Package execution order</label>
+                              <input type="number" class="form-control" placeholder="Order ID" value="0" data-toggle="tooltip" data-placement="top" title="Smaller numbers mean sooner execution. Two packages with the same number will run at the same time.">
+                            </div>
+                            <div class="mb-3 col-12 col-sm-4">
+                              <label class="form-label">Threads</label>
+                              <input type="number" class="form-control" placeholder="Number of threads" value="0" data-toggle="tooltip" data-placement="top" title="If greater than zero, the manager will balance the number of agents in the threads. Otherwise, the package will run on the main thread.">
+                            </div>
+                            <div class="mb-3 col-12 col-sm-4">
+                              <label class="form-label">Deadline</label>
+                              <input type="number" class="form-control" placeholder="minutes" value="0" data-toggle="tooltip" data-placement="top" title="If greater than zero, the execution will stop at this number of minutes.">
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </div>
+                    </div>
+
+
+                    <!-- Export -->
+                    <div class="collapser-scope accordion-item overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="collapser collapsed accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true">
+                          Export
+                        </button>
+                      </h2>
+                      <div class="collapsible accordion-collapse collapse">
+                        <div class="accordion-body">
+                          <div class="row my-3">
+                            <label class="form-label">Output folder absolute path</label>
+                            <div class="input-group mb-3">
+                              <div class="input-group-text">
+                                <i class="fas fa-folder-open"></i>
+                              </div>
+                              <input type="text" class="form-control">
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </div>
+                    </div>
+
+                    
+                  </div>
+                </div>
+                
+
+
+
+                <!-- BUTTON ADD PACKAGE -->
+                <div id="add-five-package" class="row my-4 mx-1">
+                  <button type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="top" title="A FIVE project is made of packages">
+                    Add new package
+                  </button>
+                </div>
+
+
+
+
+                <!-- TEMPLATES FOR JS/JQUERY -->
+                <div id="templates" style="display: none;">
+
+                  <div> 
+                    <!-- Modify the value for the nighbour JID -->
+                    <!-- 
+                      Classes
+                        five-data-neighbour-container: Template of neighbour agent.
+                        five-data-neighbour-jid: JID of the neighbour in value attribute.
+                    -->
+                    <div class="five-data-neighbour-container col-12 input-group mb-1">
+                      <input type="text" class="form-control" placeholder="Neighbour Jabber ID">
+                      <button class="btn btn-outline-danger p-2">
+                        <i class="fas fa-user-minus"></i>
+                      </button>
+                    </div> 
+                  </div>
+
+
+                  <div>
+                    <!-- Agent card -->
+                    <!-- 
+                      Classes
+                        five-data-neighbour-container: Template of neighbour agent.
+                        five-data-neighbour-jid: JID of the neighbour in value attribute.
+                    -->
+                    <div class="card">
+                      <div class="card-header">
+                        <input type="text" class="form-control" placeholder="Agent Jabber ID">
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <label class="form-label">Behaviour file</label>
+                          <div class="input-group">
+                            <div class="input-group-text">
+                              <i class="fa-solid fa-child"></i>
+                            </div>
+                            <input type="file" class="form-control" accept=".py">
+                          </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                          <label class="form-label">Algorithm parameters</label>
+                        </div>
+                        <hr>
+                        <div class="row">
+                          <label class="form-label">Neighbours</label>
+                          <div class="row mx-0 px-0">
+                            <div class="col-12 input-group mb-1">
+                              <input type="text" class="form-control" placeholder="Neighbour Jabber ID">
+                              <button class="btn btn-outline-danger p-2">
+                                <i class="fas fa-user-minus"></i>
+                              </button>
+                            </div> 
+                          </div>
+                          <div class="col-12 input-group mt-2">
+                            <input type="text" class="form-control" placeholder="Neighbour Jabber ID">
+                            <button class="btn btn-outline-success p-2">
+                              <i class="fas fa-user-plus"></i>
+                            </button>
+                          </div> 
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                            
+
+
+                  
+
+
+
+                </div>
+                <!-- End of TEMPLATES FOR JS/JQUERY -->
+
+                
+
+                <footer class="pt-5 d-flex justify-content-between">
+                  <span class="d-flex justify-content-center align-items-center">Copyright © 2021-2024 <a class="ml-1" href="https://github.com/FranEnguix/five">FIVE</a></span>
+                  <ul class="nav m-0">
+                    <li class="nav-item">
+                      <a class="nav-link text-secondary" href="https://github.com/FranEnguix/five/blob/main/LICENSE">License</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link text-secondary" href="mailto:enguix.fco@gmail.com">Contact</a>
+                    </li>
+                  </ul>
+                </footer>
+
+                
+
+
+            </main>
+
+            
+        </div>
+    </div>
+    
+    <script>
+      // Filter with search-bar
+      $(document).ready(function(){
+        $("#search-bar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#filter-target div").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          });
+        });
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script> -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script> -->
+    <!-- Github buttons -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <script>
+      function toggleNextCheckbox() {
+        let chkBox = $(this).next();
+        chkBox.prop("checked", !chkBox.prop("checked"));
+      }
+
+      function collapserButton() {
+        let collapserScope = $(this).closest('.collapser-scope');
+        let collapsible = collapserScope.find('.collapsible');
+        collapsible.collapse('toggle');
+        $(this).toggleClass('collapsed');
+      }
+    </script>
+    <script>
+      // Enable button behaviour
+      $('.btn-toggle-success').click(function() {
+        $(this).toggleClass('btn-outline-success');
+        $(this).toggleClass('btn-success');
+      });
+    </script>
+    <script>
+      // Init all collapse elements
+      $('.collapser').click(function() {
+        let collapserScope = $(this).closest('.collapser-scope');
+        let collapsible = collapserScope.find('.collapsible');
+        collapsible.collapse('toggle');
+        $(this).toggleClass('collapsed');
+      });
+      // const collapseElementList = document.querySelectorAll('.collapse')
+      // const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl))
+    </script>
+    <script>
+      // Init all tooltips
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      })
+    </script>
+    <script>
+      function loadProject(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const json = JSON.parse(e.target.result);
+              console.log('Project loaded:', json);
+              // Handle the loaded JSON data here
+            } catch (err) {
+              console.error('Error reading the JSON file:', err);
+            }
+          };
+          reader.readAsText(file);
+        }
+      }
+    </script>
+</body>
+</html>
