@@ -533,3 +533,6 @@ FodyWeavers.xsd
 
 # Exclude captures directory
 captures/*
+
+#datasets
+main/royalflush_datasets/
