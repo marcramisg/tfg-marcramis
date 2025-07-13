@@ -64,7 +64,7 @@ distribution = ""
 ann = ""
 max_message_size = 250_000
 
-carga_sintetica = True
+carga_sintetica = False
 
 data = {}
 data[1] = {
@@ -401,7 +401,7 @@ def setup_web(manager: AgentManager, web_address: str, web_port: int) -> None:
         port=web_port,
         templates_path="../web/templates",
     )
-    print(f"Manager started: http://{web_address}:{web_port}/manager/dashboard")
+    print(f"Manager started: http://{web_address}:{web_port}/manager/launcher")
 
 ##################################################################################################################
 ## Manejo Logs ##
